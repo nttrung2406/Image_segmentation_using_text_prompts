@@ -1,0 +1,6 @@
+training: python training.py coco.yaml [id]
+
+=> config.json
+=> copy weight to config.json
+
+Evaluate: python score.py coco.yaml [id] [mask] (*in yaml file)
