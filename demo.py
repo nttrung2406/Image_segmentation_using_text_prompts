@@ -12,12 +12,12 @@ plt.style.use("dark_background")
 @st.cache_data
 def load_model():
     model = CLIPDensePredT(version='ViT-B/16', reduce_dim=64)
-    model.load_state_dict(torch.load('E:\\clipseg\\weights\\rd64-uni.pth', map_location=torch.device('cpu')), strict=False)
+    model.load_state_dict(torch.load('E:\\Code\\clipseg\\weights\\rd64-uni.pth', map_location=torch.device('cpu')), strict=False)
     return model
 
 def load_finetune():
     model = CLIPDensePredT(version='ViT-B/16', reduce_dim=64)
-    model.load_state_dict(torch.load('E:/clipseg/weights_finetune/weights.pth', map_location=torch.device('cpu')), strict=False)
+    model.load_state_dict(torch.load('E:/Code/clipseg/weights_finetune/weights.pth', map_location=torch.device('cpu')), strict=False)
     return model
 
 def rotate_image(image):
@@ -42,7 +42,7 @@ def predict_segmentation(model, text_prompts, image):
         preds = model(image_tensor, text_prompts)[0]
     
     masks = [torch.sigmoid(pred[0]) for pred in preds]
-    masks = [(mask > 0.8).float().cpu().numpy() for mask in masks]
+    masks = [(mask > 0.55).float().cpu().numpy() for mask in masks]
     return masks
 
 def blend_image_with_mask(image, mask, alpha=0.5):
@@ -122,7 +122,6 @@ def main():
         text_prompts = translate_text_prompts(text_prompts)
 
     if uploaded_file is not None:
-        if file_type == "Image":
             image = Image.open(uploaded_file)
             original_image = np.array(image)
             image_tensor = process_image(image)  
@@ -161,14 +160,6 @@ def main():
                     blended_img = blend_image_with_mask(image, mask)
                     st.image(blended_img, caption=f'Blended Mask for {text_prompts[i]}', use_column_width=True)
 
-        elif file_type == "Video":
-            with open("temp_video.mp4", "wb") as f:
-                f.write(uploaded_file.getbuffer())
-
-            model = load_model()
-            finetune_model = load_finetune()
-            process_video("temp_video.mp4", "output_video.mp4", text_prompts, model, finetune_model)
-            st.video("output_video.mp4")
 
 
 if __name__ == "__main__":
